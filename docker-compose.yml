@@ -1,0 +1,8 @@
+version: '3.2'
+
+services:
+  auth:
+    build:
+      context: ./auth
+    ports:
+      - 8000:8000
