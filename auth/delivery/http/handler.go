@@ -29,6 +29,10 @@ func (h *Handler) SignUp(c *gin.Context) {
 	}
 
 	if err := h.uc.SignUp(c.Request.Context(), inp.UserName, inp.UserPwd); err != nil {
+		if err == auth.ErrUserAlreadyExists {
+			c.AbortWithStatus(http.StatusConflict)
+			return
+		}
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
@@ -65,7 +69,7 @@ func (h *Handler) SignIn(c *gin.Context) {
 func (h *Handler) GetUser(c *gin.Context) {
 	user, err := h.uc.GetUser(c.Request.Context(), c.Query("jwt"))
 
-	if err != nil && err != auth.ErrUserNotFound{
+	if err != nil && err != auth.ErrUserNotFound {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}

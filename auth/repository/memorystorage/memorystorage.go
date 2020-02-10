@@ -2,7 +2,6 @@ package memorystorage
 
 import (
 	"context"
-	"crypto/sha256"
 	"github.com/google/uuid"
 	"github.com/lazy-bees/borsch/auth"
 	"github.com/lazy-bees/borsch/auth/models"
@@ -25,11 +24,12 @@ func (r *UserMemoryStorage) CreateUser(ctx context.Context, userName, userPwd st
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	hash := sha256.New()
-	hash.Write([]byte(userName))
-	hash.Write([]byte(userPwd))
+	if _, ok := r.users[userName]; ok {
+		return auth.ErrUserAlreadyExists
+	}
 
-	r.users[string(hash.Sum(nil))] = &models.User{ID: uuid.New().String(),
+	r.users[userName] = &models.User{
+		ID:   uuid.New().String(),
 		Name: userName,
 		PWD:  userPwd,
 	}
@@ -41,11 +41,7 @@ func (r *UserMemoryStorage) GetUser(ctx context.Context, userName, userPwd strin
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	hash := sha256.New()
-	hash.Write([]byte(userName))
-	hash.Write([]byte(userPwd))
-
-	if u, ok := r.users[string(hash.Sum(nil))]; ok {
+	if u, ok := r.users[userName]; ok && u.PWD == userPwd {
 		return u, nil
 	} else {
 		return nil, auth.ErrUserNotFound
