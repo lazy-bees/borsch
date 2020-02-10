@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	authhttp "github.com/lazy-bees/borsch/auth/delivery/http"
 	"github.com/lazy-bees/borsch/auth/repository/memorystorage"
@@ -36,20 +37,7 @@ func (s *Server) Run(port string) error {
 	router.Use(
 		gin.Recovery(),
 		gin.Logger(),
-		func(c *gin.Context) {
-			c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-			c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-			c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, "+
-				"X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-			c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
-
-			if c.Request.Method == "OPTIONS" {
-				c.AbortWithStatus(204)
-				return
-			}
-
-			c.Next()
-		},
+		cors.Default(),
 	)
 
 	authhttp.RegisterHTTPEndpoints(router, s.uc)
